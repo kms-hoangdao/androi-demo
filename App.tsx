@@ -6,9 +6,9 @@ import {
   TextInput,
   TouchableOpacity,
   FlatList,
-  StyleSheet,
 } from "react-native";
-
+import { TaskItem } from "./components/TaskItem";
+import styles from "./style";
 interface Task {
   id: string;
   name: string;
@@ -36,7 +36,9 @@ export default function App() {
 
     if (editingTaskId) {
       setTasks(
-        tasks.map((t) => (t.id === editingTaskId ? { ...t, name: editTask } : t))
+        tasks.map((t) =>
+          t.id === editingTaskId ? { ...t, name: editTask } : t
+        )
       );
       setEditingTaskId(null);
       setEditTask("");
@@ -48,7 +50,7 @@ export default function App() {
 
   const handleEditTask = () => {
     if (!editTask.trim()) return;
-    
+
     setTasks(
       tasks.map((t) => (t.id === editingTaskId ? { ...t, name: editTask } : t))
     );
@@ -59,41 +61,6 @@ export default function App() {
   const handleDeleteTask = (id: string) => {
     setTasks(tasks.filter((t) => t.id !== id));
   };
-
-  const renderItem = ({ item }: { item: Task }) => (
-    <View style={styles.taskItem}>
-      {editingTaskId === item.id ? (
-        <>
-          <TextInput
-            style={[styles.taskText, styles.input]}
-            value={editTask}
-            onChangeText={setEditTask}
-            autoFocus
-          />
-          <TouchableOpacity onPress={handleEditTask}>
-            <Text style={{ marginLeft: 20 }}>✔️</Text>
-          </TouchableOpacity>
-        </>
-      ) : (
-        <>
-          <Text style={styles.taskText}>{item.name}</Text>
-          <View style={{ flexDirection: "row" }}>
-            <TouchableOpacity
-              onPress={() => {
-                setEditTask(item.name);
-                setEditingTaskId(item.id);
-              }}
-            >
-              <Text style={{ marginRight: 10 }}>✏️</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteTask(item.id)}>
-              <Text>🗑️</Text>
-            </TouchableOpacity>
-          </View>
-        </>
-      )}
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -112,55 +79,21 @@ export default function App() {
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
-        renderItem={renderItem}
+        renderItem={({ item }) => (
+          <TaskItem
+            item={item}
+            editTask={editTask}
+            editingTaskId={editingTaskId}
+            onEdit={(name, id) => {
+              setEditTask(name);
+              setEditingTaskId(id);
+            }}
+            onDelete={handleDeleteTask}
+            onEditChange={setEditTask}
+            onEditComplete={handleEditTask}
+          />
+        )}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: "#f5f5f5",
-  },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 20 },
-  inputContainer: { flexDirection: "row", marginBottom: 20 },
-  addButton: {
-    marginLeft: 10,
-    backgroundColor: "#007bff",
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    borderRadius: 8,
-  },
-  taskText: { fontSize: 16 },
-  deleteText: { fontSize: 18 },
-  taskItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 10,
-    backgroundColor: "#fff",
-    fontSize: 16,
-  },
-  addButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-});
