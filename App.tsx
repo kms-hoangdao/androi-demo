@@ -15,7 +15,8 @@ interface Task {
 }
 
 export default function App() {
-  const [task, setTask] = useState("");
+  const [newTask, setNewTask] = useState("");
+  const [editTask, setEditTask] = useState("");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
 
@@ -31,18 +32,28 @@ export default function App() {
   }, [tasks]);
 
   const handleAddTask = () => {
-    if (!task.trim()) return;
+    if (!newTask.trim()) return;
 
     if (editingTaskId) {
       setTasks(
-        tasks.map((t) => (t.id === editingTaskId ? { ...t, name: task } : t))
+        tasks.map((t) => (t.id === editingTaskId ? { ...t, name: editTask } : t))
       );
       setEditingTaskId(null);
+      setEditTask("");
     } else {
-      setTasks([...tasks, { id: Date.now().toString(), name: task }]);
+      setTasks([...tasks, { id: Date.now().toString(), name: newTask }]);
+      setNewTask("");
     }
+  };
 
-    setTask("");
+  const handleEditTask = () => {
+    if (!editTask.trim()) return;
+    
+    setTasks(
+      tasks.map((t) => (t.id === editingTaskId ? { ...t, name: editTask } : t))
+    );
+    setEditingTaskId(null);
+    setEditTask("");
   };
 
   const handleDeleteTask = (id: string) => {
@@ -51,20 +62,36 @@ export default function App() {
 
   const renderItem = ({ item }: { item: Task }) => (
     <View style={styles.taskItem}>
-      <Text style={styles.taskText}>{item.name}</Text>
-      <View style={{ flexDirection: "row" }}>
-        <TouchableOpacity
-          onPress={() => {
-            setTask(item.name);
-            setEditingTaskId(item.id);
-          }}
-        >
-          <Text style={{ marginRight: 10 }}>✏️</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDeleteTask(item.id)}>
-          <Text>🗑️</Text>
-        </TouchableOpacity>
-      </View>
+      {editingTaskId === item.id ? (
+        <>
+          <TextInput
+            style={[styles.taskText, styles.input]}
+            value={editTask}
+            onChangeText={setEditTask}
+            autoFocus
+          />
+          <TouchableOpacity onPress={handleEditTask}>
+            <Text style={{ marginLeft: 20 }}>✔️</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <>
+          <Text style={styles.taskText}>{item.name}</Text>
+          <View style={{ flexDirection: "row" }}>
+            <TouchableOpacity
+              onPress={() => {
+                setEditTask(item.name);
+                setEditingTaskId(item.id);
+              }}
+            >
+              <Text style={{ marginRight: 10 }}>✏️</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => handleDeleteTask(item.id)}>
+              <Text>🗑️</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
     </View>
   );
 
@@ -75,13 +102,11 @@ export default function App() {
         <TextInput
           style={styles.input}
           placeholder="Enter a task..."
-          value={task}
-          onChangeText={setTask}
+          value={newTask}
+          onChangeText={setNewTask}
         />
         <TouchableOpacity onPress={handleAddTask} style={styles.addButton}>
-          <Text style={styles.addButtonText}>
-            {editingTaskId ? "✔️" : "➕"}
-          </Text>
+          <Text style={styles.addButtonText}>➕</Text>
         </TouchableOpacity>
       </View>
       <FlatList
